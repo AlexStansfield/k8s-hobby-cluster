@@ -9,22 +9,24 @@ The steps cover system preparation, networking, and connecting to the master nod
 - Use a minimal installation (no desktop environment).  
 - Ensure SSH is enabled during installation.  
 - Set a unique static hostname, e.g. `cluster-node1`, `cluster-node2`, etc.
+- Configure storage to 50G root and remaining to `/mnt/data`.
+
 
 ## 2. Networking
 
-- Assign each worker node a static IP to it's ethernet MAC address via Pi-hole DHCP reservation.  
-  - Reserved range: **192.168.2.31 → 192.168.2.40**  
-  - Example:  
-    - `192.168.2.32` → `cluster-node1`  
-    - `192.168.2.33` → `cluster-node2`  
+Assign each worker node a static IP to it's ethernet MAC address via Pi-hole DHCP reservation.  
+- Reserved range: **192.168.2.31 → 192.168.2.40**  
+- Example:  
+  - `192.168.2.32` → `cluster-node1`  
+  - `192.168.2.33` → `cluster-node2`  
 
-- Verify connectivity:
+Verify connectivity:
 
-  ```bash
-  ping 192.168.2.1     # pi-hole
-  ping 192.168.2.254   # main network gateway
-  ping google.com      # external connectivity
-  ```
+```bash
+ping 192.168.2.1     # pi-hole
+ping 192.168.2.254   # main network gateway
+ping google.com      # external connectivity
+```
 
 ## 3. System Preparation
 
@@ -32,8 +34,34 @@ Update and install baseline tools:
 
 ```bash
 sudo apt update && sudo apt upgrade -y
-sudo apt install -y curl wget git htop net-tools vim
+sudo apt install -y curl wget git htop net-tools vim nano
 ```
+
+### Disable Swap
+
+Kubernetes requires swap to be disabled.  
+
+1. Turn off swap immediately:
+
+```bash
+sudo swapoff -a
+```
+
+2. Remove or comment out any swap entries in /etc/fstab:
+
+```bash
+sudo nano /etc/fstab
+```
+
+Look for a line referencing swap (e.g., /swap.img or a swap partition) and comment it out with #.
+
+3. Verify swap is disabled:
+
+```bash
+free -h
+```
+
+The Swap row should show 0B.
 
 ## 4. K3s Installation (Worker Node)
 

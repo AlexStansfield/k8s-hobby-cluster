@@ -19,8 +19,8 @@ It prioritizes simplicity, resilience, and reproducibility.
 
 ### Worker Nodes  
 - Radxa X4 (same spec as master) × 2–3  
-- Each with NVMe M.2 SSD (512 GB)
-- 2.5 GbE networking
+- Storage: NVMe M.2 SSD (512 GB)  
+- Networking: 2.5 GbE
 
 ### Networking & Power
 
@@ -56,14 +56,14 @@ Using **Longhorn** - https://longhorn.io/
 
 ## Networking
 
-- **Cluster Network**:  
-  - Single subnet (`192.168.2.0/24`) shared with other home-lab services  
-  - Static DHCP assignments via Pi-hole DHCP server  
+- **Cluster Network**:
+  - Single subnet (`192.168.2.0/24`) shared with other home-lab services
+  - Static DHCP assignments via Pi-hole DHCP server
   - Master and worker nodes assigned IPs in reserved cluster nodes range (`192.168.2.31–40`)
 
-- **Ingress / Load Balancing**:  
-  - K3s built-in Traefik ingress controller (may replace with NGINX ingress later)  
-  - Cluster accessible via LAN DNS and reverse proxy  
+- **Ingress / Load Balancing**:
+  - K3s built-in Traefik ingress controller (may replace with NGINX ingress later)
+  - Cluster accessible via LAN DNS and reverse proxy
   - MetalLB planned for future external LoadBalancer support
 
 ## Additional Components

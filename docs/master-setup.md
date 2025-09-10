@@ -10,6 +10,7 @@ The steps cover system preparation, OS configuration, and installation of the Ku
 - Use a minimal installation (no desktop environment).  
 - Ensure SSH is enabled during installation.  
 - Set a static hostname, e.g. `cluster-master`.
+- Configure storage to 50G root and remaining to `/mnt/data`.
 
 ## 2. Networking
 
@@ -27,13 +28,39 @@ The steps cover system preparation, OS configuration, and installation of the Ku
 Update and install baseline tools:
 ```bash
 sudo apt update && sudo apt upgrade -y
-sudo apt install -y curl wget git htop net-tools vim
+sudo apt install -y curl wget git htop net-tools vim nano
 ```
 
 Optional (useful for Kubernetes administration):
 ```bash
-sudo apt install -y nano tmux unzip
+sudo apt install -y tmux unzip
 ```
+
+### Disable Swap
+
+Kubernetes requires swap to be disabled.  
+
+1. Turn off swap immediately:
+
+```bash
+sudo swapoff -a
+```
+
+2. Remove or comment out any swap entries in /etc/fstab:
+
+```bash
+sudo nano /etc/fstab
+```
+
+Look for a line referencing swap (e.g., /swap.img or a swap partition) and comment it out with #.
+
+3. Verify swap is disabled:
+
+```bash
+free -h
+```
+
+The Swap row should show 0B.
 
 ## 4. K3s Installation (Master Node)
 

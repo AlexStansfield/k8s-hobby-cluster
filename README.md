@@ -1,4 +1,4 @@
-# Kubertnetes Hobby Cluster
+# Kubernetes Hobby Cluster
 
 This repository documents the architecture, configuration, and custom manifests for my self-hosted Kubernetes cluster.
 

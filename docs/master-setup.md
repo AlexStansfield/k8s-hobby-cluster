@@ -40,10 +40,16 @@ sudo apt install -y nano tmux unzip
 Install k3s server (control plane):
 
 ```bash
-curl -sfL https://get.k3s.io | sh -
+curl -sfL https://get.k3s.io | \
+  INSTALL_K3S_EXEC="server \
+    --node-ip=192.168.2.11 \
+    --flannel-iface=enp2s0" \
+  sh -
 ```
 
 This sets up the master node with the Kubernetes control plane and embedded etcd datastore (sufficient for small clusters).
+
+**Note**: because the nodes have multiple network interfaces and are using DHCP we specify the IP address and interface during install
 
 By default, kubectl is configured and available at:
 
@@ -51,7 +57,44 @@ By default, kubectl is configured and available at:
 sudo kubectl get nodes
 ```
 
-## 5. Retrieve Cluster Join Token
+We now want to enable kubectl for the non-root user:
+
+```bash
+mkdir -p $HOME/.kube
+sudo cp /etc/rancher/k3s/k3s.yaml $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+echo 'export KUBECONFIG=$HOME/.kube/config' >> ~/.bashrc
+source ~/.bashrc
+```
+
+This will copy the config to the current user's kube config and update your KUBECONFIG env to point to it.
+
+Test you can now use kubectl without sudo:
+
+```bash
+kubectl get nodes
+```
+
+## 5. Verify Cluster Status
+
+Check that the master node is up and running:
+
+```bash
+kubectl get nodes -o wide
+kubectl get pods -A
+```
+
+You should see the master node in Ready status, along with system pods (CoreDNS, Traefik, metrics, etc.).
+
+## 6. Install Helm for package management
+
+Install Helm for package management:
+
+```bash
+curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+```
+
+## 7. Retrieve Cluster Join Token
 
 Worker nodes will need a token to join the cluster. Retrieve it with:
 
@@ -60,30 +103,3 @@ sudo cat /var/lib/rancher/k3s/server/node-token
 ```
 
 Keep this value secure — you will need it when configuring worker nodes.
-
-## 6. Verify Cluster Status
-
-Check that the master node is up and running:
-
-```bash
-sudo kubectl get nodes -o wide
-sudo kubectl get pods -A
-```
-
-You should see the master node in Ready status, along with system pods (CoreDNS, Traefik, metrics, etc.).
-
-## 7. Post-Setup (Optional)
-
-Enable kubectl for non-root user:
-
-```bash
-mkdir -p $HOME/.kube
-sudo cp /etc/rancher/k3s/k3s.yaml $HOME/.kube/config
-sudo chown $(id -u):$(id -g) $HOME/.kube/config
-```
-
-Install Helm for package management:
-
-```bash
-curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-```

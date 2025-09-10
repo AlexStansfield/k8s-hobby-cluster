@@ -36,7 +36,7 @@ It prioritizes simplicity, resilience, and reproducibility.
 
 ## Operating System
 
-- **Ubuntu 24.04 LTS (Noble Numbat) Server** on all nodes  
+- **Ubuntu Server 24.04 LTS (Noble Numbat)** on all nodes  
 - Minimal server installation with SSH access  
 - Consistent user, hostname, and package baseline across the cluster
 
@@ -59,7 +59,7 @@ Using **Longhorn** - https://longhorn.io/
 - **Cluster Network**:  
   - Single subnet (`192.168.2.0/24`) shared with other home-lab services  
   - Static DHCP assignments via Pi-hole DHCP server  
-  - Master and worker nodes assigned IPs in reserved server range (`192.168.2.11–20`)
+  - Master and worker nodes assigned IPs in reserved cluster nodes range (`192.168.2.31–40`)
 
 - **Ingress / Load Balancing**:  
   - K3s built-in Traefik ingress controller (may replace with NGINX ingress later)  

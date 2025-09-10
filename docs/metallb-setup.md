@@ -160,3 +160,22 @@ Now open the Longhorn UI at:
 - Reserve the MetalLB IP range in your DHCP server (Pi-hole) to avoid conflicts.
 - Use DNS entries pointing to the MetalLB-assigned IPs for friendlier access (e.g. app.local).
 - Monitor MetalLB pods in metallb-system for health.
+
+## Notes on IP Addresses
+
+Some useful details about how IP addresses are assigned and released.
+
+### Dynamic IPs (no loadBalancerIP field):
+
+- MetalLB picks an available IP from the pool.
+- When the Service is deleted, that IP is freed up immediately.
+- Next time you create a LoadBalancer service, MetalLB may reuse the same IP, or assign a different one from the pool.
+
+### Static IPs (with loadBalancerIP:):
+
+- If you hardcode something like:
+  ```yaml
+  loadBalancerIP: 192.168.2.55
+  ```
+  then MetalLB will always try to bind that exact IP to the service.
+- If the service is deleted, the IP becomes available again — but only services that explicitly request it will get it.

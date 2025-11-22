@@ -1,0 +1,29 @@
+replicaCount: 1
+
+# Bind to port 5000 internally
+service:
+  type: NodePort
+  port: 5000
+  nodePort: 31234  # exposed on cluster-master:31234
+
+persistence:
+  enabled: true
+  accessMode: ReadWriteOnce
+  size: 50Gi
+  storageClass: longhorn
+  existingClaim: ""
+  mountPath: /var/lib/registry
+
+# We don't need authentication yet, so disable it
+secrets:
+  htpasswd: ""
+
+# Force registry pod to run only on cluster-master node
+nodeSelector:
+  kubernetes.io/hostname: cluster-master
+
+# Tolerations if needed (if master is tainted)
+# tolerations:
+#   - key: node-role.kubernetes.io/master
+#     effect: NoSchedule
+#     operator: Exists

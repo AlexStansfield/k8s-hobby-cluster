@@ -69,7 +69,7 @@ Install k3s server (control plane):
 ```bash
 curl -sfL https://get.k3s.io | \
   INSTALL_K3S_EXEC="server \
-    --node-ip=192.168.2.11 \
+    --node-ip=192.168.2.31 \
     --flannel-iface=enp2s0" \
   sh -
 ```

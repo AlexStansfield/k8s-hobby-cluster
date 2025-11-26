@@ -11,11 +11,52 @@ MetalLB allows services of type `LoadBalancer` to be assigned real IP addresses 
 
 ### Cluster Network Info
 
-- Subnet: `192.168.2.0/24`  
-- Router/Gateway: `192.168.2.254`  
-- Cluster nodes: `192.168.2.31–40`  
-- **Reserved for MetalLB**: choose a range outside of node/DHCP allocations.  
+- Subnet: `192.168.2.0/24`
+- Router/Gateway: `192.168.2.254`
+- Cluster nodes: `192.168.2.31–40`
+- **Reserved for MetalLB**: choose a range outside of node/DHCP allocations.
   - Example: `192.168.2.41–192.168.2.60`
+
+### Disable K3s Built-in ServiceLB
+
+**IMPORTANT**: K3s ships with a built-in service load balancer (Klipper) that conflicts with MetalLB. You **must** disable it before installing MetalLB.
+
+On the **master node** only, edit the K3s service file:
+
+```bash
+sudo nano /etc/systemd/system/k3s.service
+```
+
+Add `--disable servicelb` to the `ExecStart` command. Example:
+
+```ini
+ExecStart=/usr/local/bin/k3s \
+    server \
+    --node-ip=192.168.2.31 \
+    --flannel-iface=enp2s0 \
+    --disable servicelb
+```
+
+Reload systemd and restart K3s:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl restart k3s
+```
+
+Wait 30-60 seconds for the cluster to stabilize, then verify worker nodes reconnect:
+
+```bash
+kubectl get nodes
+```
+
+All `svclb-*` pods across all nodes will be deleted automatically. You can verify with:
+
+```bash
+kubectl get pods -A | grep svclb
+```
+
+Should return no results.
 
 ## 2. Install MetalLB
 

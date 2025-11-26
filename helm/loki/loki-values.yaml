@@ -1,0 +1,110 @@
+# Loki Helm Chart Values
+# Chart: grafana/loki
+# Purpose: Log aggregation and storage for the observability stack
+
+# Deployment mode: Single-instance (not distributed)
+deploymentMode: SingleBinary
+
+# Loki configuration
+loki:
+  # Auth disabled for internal use
+  auth_enabled: false
+
+  # Common configuration (using /var/loki as mount point)
+  commonConfig:
+    path_prefix: /var/loki
+    replication_factor: 1
+    ring:
+      kvstore:
+        store: inmemory
+
+  # Schema configuration (required)
+  schemaConfig:
+    configs:
+      - from: "2025-01-01"
+        store: tsdb
+        object_store: filesystem
+        schema: v13
+        index:
+          prefix: index_
+          period: 24h
+
+  # Storage configuration
+  storage:
+    type: filesystem
+    filesystem:
+      chunks_directory: /var/loki/chunks
+      rules_directory: /var/loki/rules
+
+  # Limits configuration
+  limits_config:
+    retention_period: 720h  # 30 days
+    reject_old_samples: true
+    reject_old_samples_max_age: 168h
+    max_query_series: 10000
+    max_query_parallelism: 32
+
+  # Compactor for retention
+  compactor:
+    working_directory: /var/loki/compactor
+    compaction_interval: 10m
+    retention_enabled: true
+    retention_delete_delay: 2h
+    retention_delete_worker_count: 150
+    delete_request_store: filesystem
+
+  # Storage config for TSDB
+  storage_config:
+    tsdb_shipper:
+      active_index_directory: /var/loki/index
+      cache_location: /var/loki/cache
+    filesystem:
+      directory: /var/loki/chunks
+
+# Single binary deployment configuration
+singleBinary:
+  replicas: 1
+
+  # Resource limits (30% reduced from requirements)
+  resources:
+    requests:
+      cpu: 140m
+      memory: 358Mi
+    limits:
+      cpu: 700m
+      memory: 1.4Gi
+
+  # Persistent storage using Longhorn
+  persistence:
+    enabled: true
+    storageClass: longhorn
+    size: 20Gi
+
+# Read/Write/Backend components disabled (using SingleBinary mode)
+read:
+  replicas: 0
+write:
+  replicas: 0
+backend:
+  replicas: 0
+
+# Monitoring - expose metrics
+monitoring:
+  selfMonitoring:
+    enabled: false
+    grafanaAgent:
+      installOperator: false
+
+# Gateway disabled for single-instance
+gateway:
+  enabled: false
+
+# Test pod disabled
+test:
+  enabled: false
+
+# Disable chunks-cache and results-cache for simple deployment
+chunksCache:
+  enabled: false
+resultsCache:
+  enabled: false

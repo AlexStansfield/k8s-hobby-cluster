@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-config
+  namespace: monitoring
+data:
+  grafana.ini: |
+    [server]
+    http_port = 3000
+    domain = 192.168.2.43
+    root_url = http://192.168.2.43:3000/
+
+    [security]
+    admin_user = admin
+    # admin_password loaded from secret
+
+    [auth.anonymous]
+    enabled = false
+
+    [unified_alerting]
+    enabled = true
+
+    [log]
+    mode = console
+    level = info

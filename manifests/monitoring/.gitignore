@@ -1,0 +1,3 @@
+# Ignore the Grafana admin secret file
+# This prevents committing the password to git
+grafana-admin-secret.yaml

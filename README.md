@@ -64,14 +64,21 @@ Using **Longhorn** - https://longhorn.io/
 - **Ingress / Load Balancing**:
   - K3s built-in Traefik ingress controller (may replace with NGINX ingress later)
   - Cluster accessible via LAN DNS and reverse proxy
-  - MetalLB planned for future external LoadBalancer support
+  - **MetalLB** for LoadBalancer support (IP pool: `192.168.2.41-60`)
 
 ## Additional Components
 
-- **Helm** for package management  
-- **Kubectl** as main management CLI  
-- **Portainer** for basic GUI-based management  
-- **GitOps** approach with YAML manifests and Helm charts tracked in this repo  
+- **Helm** for package management
+- **Kubectl** as main management CLI
+- **Portainer** for basic GUI-based management
+- **GitOps** approach with YAML manifests and Helm charts tracked in this repo
+- **Observability Stack** for monitoring and troubleshooting:
+  - **Loki** for log aggregation
+  - **Prometheus** for metrics collection
+  - **Tempo** for distributed tracing
+  - **Grafana** for unified visualization (http://192.168.2.44)
+  - **OpenTelemetry Collector** for telemetry processing
+  - **Alloy** for log collection  
 
 ## Repository Contents
 

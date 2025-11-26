@@ -1,0 +1,154 @@
+# Grafana Helm Chart Values
+# Chart: grafana/grafana
+# Purpose: Unified visualization dashboard
+
+# Replicas
+replicas: 1
+
+# Resource limits (30% reduced from requirements)
+resources:
+  requests:
+    cpu: 70m
+    memory: 179Mi
+  limits:
+    cpu: 350m
+    memory: 700Mi
+
+# Admin credentials from Secret
+admin:
+  existingSecret: grafana-admin-secret
+  userKey: admin-user
+  passwordKey: admin-password
+
+# Admin user (password from secret)
+adminUser: admin
+
+# Persistent storage using Longhorn
+persistence:
+  enabled: true
+  storageClassName: longhorn
+  size: 5Gi
+  accessModes:
+    - ReadWriteOnce
+
+# Service configuration - LoadBalancer with MetalLB
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 3000
+  loadBalancerIP: 192.168.2.44
+  annotations: {}
+
+# Grafana configuration from ConfigMap
+grafana.ini:
+  server:
+    http_port: 3000
+    domain: 192.168.2.44
+    root_url: "http://192.168.2.44/"
+  security:
+    admin_user: admin
+  auth.anonymous:
+    enabled: false
+  unified_alerting:
+    enabled: true
+  log:
+    mode: console
+    level: info
+
+# Datasource provisioning
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: Loki
+        type: loki
+        access: proxy
+        url: http://loki:3100
+        isDefault: false
+        jsonData:
+          maxLines: 1000
+          derivedFields:
+            - datasourceUid: tempo
+              matcherRegex: "trace_id=(\\w+)"
+              name: TraceID
+              url: "$${__value.raw}"
+
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus-server:80
+        isDefault: true
+        jsonData:
+          timeInterval: 15s
+
+      - name: Tempo
+        type: tempo
+        access: proxy
+        url: http://tempo:3200
+        isDefault: false
+        jsonData:
+          tracesToLogs:
+            datasourceUid: loki
+            filterByTraceID: true
+            filterBySpanID: false
+            tags: ['namespace', 'pod', 'container']
+          serviceMap:
+            datasourceUid: prometheus
+          nodeGraph:
+            enabled: true
+
+# Dashboard providers (optional - for future dashboard imports)
+dashboardProviders:
+  dashboardproviders.yaml:
+    apiVersion: 1
+    providers:
+      - name: 'default'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/default
+
+# Dashboards (empty for now - can add later)
+dashboards: {}
+
+# ServiceAccount
+serviceAccount:
+  create: true
+  name: grafana
+
+# Enable plugins (optional)
+plugins: []
+
+# Environment variables
+env:
+  GF_INSTALL_PLUGINS: ""
+
+# Security context
+securityContext:
+  runAsUser: 472
+  runAsGroup: 472
+  fsGroup: 472
+
+# Ingress disabled (using LoadBalancer)
+ingress:
+  enabled: false
+
+# RBAC
+rbac:
+  create: true
+  pspEnabled: false
+
+# ServiceMonitor for Prometheus scraping (meta-monitoring)
+serviceMonitor:
+  enabled: false
+
+# Sidecar for dashboard auto-discovery
+sidecar:
+  dashboards:
+    enabled: true
+    label: grafana_dashboard
+  datasources:
+    enabled: false  # Using explicit datasource provisioning above

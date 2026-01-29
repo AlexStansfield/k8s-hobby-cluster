@@ -28,6 +28,7 @@ The observability stack is deployed using official Helm charts with custom value
 **Namespace**: `monitoring`
 **Grafana URL**: `http://192.168.2.44` (MetalLB LoadBalancer)
 **Initial Admin Password**: `changeme123` (change after first login)
+**Retention**: Logs 30 days, Metrics 15 days, Traces 7 days
 
 ---
 
@@ -86,7 +87,7 @@ kubectl get pvc -n monitoring
 
 Expected output:
 - Loki pod in `Running` state
-- PVC `loki-storage` (20Gi) in `Bound` state with Longhorn StorageClass
+- PVC `storage-loki-0` (20Gi) in `Bound` state with Longhorn StorageClass
 
 Test Loki health:
 
@@ -127,6 +128,24 @@ kubectl port-forward -n monitoring svc/prometheus-server 9090:80
 # Check Status → Targets to see discovered endpoints
 ```
 
+### Storage Optimization
+
+The Prometheus configuration includes optimizations for home lab use:
+
+**Retention**: 15 days (sufficient for troubleshooting, reduces storage)
+
+**Dropped high-cardinality metrics**: The following histogram bucket metrics from the Kubernetes API server are dropped to save ~50% storage. These are only needed for percentile calculations (p50, p90, p99) which are typically overkill for a home lab:
+
+- `apiserver_request_duration_seconds_bucket`
+- `apiserver_request_sli_duration_seconds_bucket`
+- `apiserver_request_body_size_bytes_bucket`
+- `apiserver_response_sizes_bucket`
+- `etcd_request_duration_seconds_bucket`
+- `workqueue_work_duration_seconds_bucket`
+- `workqueue_queue_duration_seconds_bucket`
+
+The `_sum` and `_count` variants are still collected, so you can calculate average latencies.
+
 ---
 
 ## Phase 4: Deploy Tempo (Trace Storage)
@@ -148,7 +167,7 @@ kubectl get pvc -n monitoring | grep tempo
 
 Expected output:
 - Tempo pod in `Running` state
-- PVC `tempo-storage` (10Gi) in `Bound` state
+- PVC `storage-tempo-0` (10Gi) in `Bound` state
 
 Test Tempo health:
 
@@ -248,7 +267,7 @@ kubectl get pvc -n monitoring | grep grafana
 Expected output:
 - Grafana pod in `Running` state
 - Service type `LoadBalancer` with EXTERNAL-IP `192.168.2.44`
-- PVC `grafana-storage` (5Gi) in `Bound` state
+- PVC `grafana` (5Gi) in `Bound` state
 
 Access Grafana:
 
@@ -448,7 +467,7 @@ trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(otlp_exporter)
 **Checks**:
 1. `kubectl get daemonset -n monitoring alloy` - Verify Alloy is running on all nodes
 2. `kubectl logs -n monitoring daemonset/alloy` - Check Alloy logs for errors
-3. `kubectl exec -n monitoring deployment/alloy -- wget -O- http://loki:3100/ready` - Test Loki connectivity
+3. `kubectl exec -n monitoring daemonset/alloy -- wget -qO- http://loki:3100/ready` - Test Loki connectivity
 
 ### Prometheus Not Scraping Metrics
 

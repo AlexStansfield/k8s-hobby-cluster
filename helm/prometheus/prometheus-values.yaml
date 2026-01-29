@@ -35,8 +35,8 @@ server:
       cpu: "1400m"
       memory: 2.8Gi
 
-  # Retention period
-  retention: "30d"
+  # Retention period (reduced from 30d to save storage)
+  retention: "15d"
 
   # Enable remote write receiver for OTel Collector
   extraFlags:
@@ -128,6 +128,30 @@ serverFiles:
           - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
             action: keep
             regex: default;kubernetes;https
+        # Drop high-cardinality histogram bucket metrics to save storage
+        # These generate ~45,000 series; we keep _sum and _count for averages
+        metric_relabel_configs:
+          - source_labels: [__name__]
+            regex: 'apiserver_request_duration_seconds_bucket'
+            action: drop
+          - source_labels: [__name__]
+            regex: 'apiserver_request_sli_duration_seconds_bucket'
+            action: drop
+          - source_labels: [__name__]
+            regex: 'apiserver_request_body_size_bytes_bucket'
+            action: drop
+          - source_labels: [__name__]
+            regex: 'apiserver_response_sizes_bucket'
+            action: drop
+          - source_labels: [__name__]
+            regex: 'etcd_request_duration_seconds_bucket'
+            action: drop
+          - source_labels: [__name__]
+            regex: 'workqueue_work_duration_seconds_bucket'
+            action: drop
+          - source_labels: [__name__]
+            regex: 'workqueue_queue_duration_seconds_bucket'
+            action: drop
 
       # Scrape kubernetes-nodes
       - job_name: 'kubernetes-nodes'

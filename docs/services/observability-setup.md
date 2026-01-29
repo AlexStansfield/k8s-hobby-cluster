@@ -584,8 +584,6 @@ kubectl delete namespace monitoring
 
 ## References
 
-- Requirements: [OBSERVABILITY_STACK_REQUIREMENTS.md](../../OBSERVABILITY_STACK_REQUIREMENTS.md)
-- Implementation Plan: [OBSERVABILITY_STACK_IMPLEMENTATION_PLAN.md](../../OBSERVABILITY_STACK_IMPLEMENTATION_PLAN.md)
 - Grafana Loki: https://grafana.com/docs/loki/latest/
 - Prometheus: https://prometheus.io/docs/
 - Tempo: https://grafana.com/docs/tempo/latest/

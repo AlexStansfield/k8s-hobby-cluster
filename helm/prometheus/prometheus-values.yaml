@@ -132,25 +132,13 @@ serverFiles:
         # These generate ~45,000 series; we keep _sum and _count for averages
         metric_relabel_configs:
           - source_labels: [__name__]
-            regex: 'apiserver_request_duration_seconds_bucket'
+            regex: '(apiserver|etcd)_.+_bucket'
             action: drop
           - source_labels: [__name__]
-            regex: 'apiserver_request_sli_duration_seconds_bucket'
+            regex: 'workqueue_.+_bucket'
             action: drop
           - source_labels: [__name__]
-            regex: 'apiserver_request_body_size_bytes_bucket'
-            action: drop
-          - source_labels: [__name__]
-            regex: 'apiserver_response_sizes_bucket'
-            action: drop
-          - source_labels: [__name__]
-            regex: 'etcd_request_duration_seconds_bucket'
-            action: drop
-          - source_labels: [__name__]
-            regex: 'workqueue_work_duration_seconds_bucket'
-            action: drop
-          - source_labels: [__name__]
-            regex: 'workqueue_queue_duration_seconds_bucket'
+            regex: '(scheduler|storage)_.+_bucket'
             action: drop
 
       # Scrape kubernetes-nodes
@@ -164,6 +152,17 @@ serverFiles:
         relabel_configs:
           - action: labelmap
             regex: __meta_kubernetes_node_label_(.+)
+        # Drop high-cardinality histogram bucket metrics (also exposed via kubelet proxy)
+        metric_relabel_configs:
+          - source_labels: [__name__]
+            regex: '(apiserver|etcd)_.+_bucket'
+            action: drop
+          - source_labels: [__name__]
+            regex: 'workqueue_.+_bucket'
+            action: drop
+          - source_labels: [__name__]
+            regex: '(scheduler|storage)_.+_bucket'
+            action: drop
 
       # Scrape kubernetes-nodes-cadvisor
       - job_name: 'kubernetes-nodes-cadvisor'

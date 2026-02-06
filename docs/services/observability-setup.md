@@ -134,17 +134,15 @@ The Prometheus configuration includes optimizations for home lab use:
 
 **Retention**: 15 days (sufficient for troubleshooting, reduces storage)
 
-**Dropped high-cardinality metrics**: The following histogram bucket metrics from the Kubernetes API server are dropped to save ~50% storage. These are only needed for percentile calculations (p50, p90, p99) which are typically overkill for a home lab:
+**Dropped high-cardinality metrics**: Histogram bucket metrics from Kubernetes internals are dropped via `metric_relabel_configs` on both the `kubernetes-apiservers` and `kubernetes-nodes` scrape jobs. These are only needed for percentile calculations (p50, p90, p99) which are overkill for a home lab. The drop rules use broad patterns:
 
-- `apiserver_request_duration_seconds_bucket`
-- `apiserver_request_sli_duration_seconds_bucket`
-- `apiserver_request_body_size_bytes_bucket`
-- `apiserver_response_sizes_bucket`
-- `etcd_request_duration_seconds_bucket`
-- `workqueue_work_duration_seconds_bucket`
-- `workqueue_queue_duration_seconds_bucket`
+- `(apiserver|etcd)_.+_bucket` - all API server and etcd histogram buckets
+- `workqueue_.+_bucket` - all workqueue histogram buckets
+- `(scheduler|storage)_.+_bucket` - all scheduler and storage histogram buckets
 
 The `_sum` and `_count` variants are still collected, so you can calculate average latencies.
+
+**Note**: Drop rules must be applied to both `kubernetes-apiservers` and `kubernetes-nodes` jobs, as the kubelet proxies API server metrics on each node.
 
 ---
 

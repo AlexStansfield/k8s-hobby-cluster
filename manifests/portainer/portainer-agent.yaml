@@ -1,0 +1,102 @@
+# Portainer Agent for the k3s cluster.
+#
+# Lets the Portainer server (https://portainer.jinkies.net, running on dixie)
+# manage this cluster as a Kubernetes environment. Based on Portainer's
+# generated portainer-agent-k8s-lb.yaml, with the image pinned to the
+# version that matches the server.
+#
+# Apply with:  kubectl apply -f manifests/portainer/portainer-agent.yaml
+# Upgrade:     bump `image:` below, re-apply, then Portainer picks it up on
+#              its next environment snapshot.
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: portainer
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: portainer-sa-clusteradmin
+  namespace: portainer
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: portainer-crb-clusteradmin
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: portainer-sa-clusteradmin
+    namespace: portainer
+---
+# Headless service used by the agent for cluster-mode peer discovery
+# (AGENT_CLUSTER_ADDR). Required even with a single replica.
+apiVersion: v1
+kind: Service
+metadata:
+  name: portainer-agent-headless
+  namespace: portainer
+spec:
+  clusterIP: None
+  selector:
+    app: portainer-agent
+---
+# LAN-facing endpoint the Portainer server connects to on port 9001.
+#
+# No loadBalancerIP is pinned here, to match what is live. The live Service
+# still carries node IPs (192.168.2.31-33) in its status from when it was
+# first applied under k3s ServiceLB; MetalLB leaves it alone and kube-proxy
+# keeps routing it. On a fresh apply MetalLB will hand out a pool IP instead
+# (see docs/portainer-setup.md), so check `kubectl -n portainer get svc` and
+# point the Portainer environment URL at whatever it gets.
+apiVersion: v1
+kind: Service
+metadata:
+  name: portainer-agent
+  namespace: portainer
+spec:
+  type: LoadBalancer
+  selector:
+    app: portainer-agent
+  ports:
+    - name: http
+      protocol: TCP
+      port: 9001
+      targetPort: 9001
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: portainer-agent
+  namespace: portainer
+spec:
+  selector:
+    matchLabels:
+      app: portainer-agent
+  template:
+    metadata:
+      labels:
+        app: portainer-agent
+    spec:
+      serviceAccountName: portainer-sa-clusteradmin
+      containers:
+        - name: portainer-agent
+          # Keep in step with the Portainer server version (Home > About in the UI).
+          image: portainer/agent:2.45.0
+          imagePullPolicy: Always
+          env:
+            - name: LOG_LEVEL
+              value: DEBUG
+            - name: AGENT_CLUSTER_ADDR
+              value: portainer-agent-headless
+            - name: KUBERNETES_POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+          ports:
+            - containerPort: 9001
+              protocol: TCP

@@ -70,6 +70,11 @@ When adding services that need external access, use MetalLB LoadBalancer IPs fro
 - Uses Longhorn for 50Gi persistent storage
 - **Insecure registry** - requires `/etc/rancher/k3s/registries.yaml` configuration on all nodes
 
+### Management UI: Portainer
+- Portainer server runs elsewhere on the LAN (https://portainer.jinkies.net); the cluster only runs the **Portainer Agent**
+- Agent deployed via [manifests/portainer/portainer-agent.yaml](manifests/portainer/portainer-agent.yaml), reachable on port 9001
+- Keep the agent image version in step with the Portainer server version
+
 ## Common Commands
 
 ### Cluster Management
@@ -139,7 +144,8 @@ Then restart:
 .
 ├── manifests/         # Kubernetes YAML manifests for infrastructure
 │   ├── longhorn/      # Longhorn UI LoadBalancer config
-│   └── metallb/       # MetalLB IP pool and L2Advertisement
+│   ├── metallb/       # MetalLB IP pool and L2Advertisement
+│   └── portainer/     # Portainer agent (connects cluster to Portainer server)
 ├── helm/              # Helm values files for chart deployments
 │   └── registry/      # Private registry Helm values
 └── docs/              # Setup and configuration documentation
@@ -147,6 +153,7 @@ Then restart:
     ├── worker-setup.md    # K3s worker node installation
     ├── longhorn-setup.md  # Longhorn storage setup
     ├── metallb-setup.md   # MetalLB load balancer setup
+    ├── portainer-setup.md # Portainer agent deployment
     └── services/
         └── registry.md    # Private registry setup
 ```
@@ -407,6 +414,7 @@ All setup procedures are documented in `docs/`:
 - Node provisioning: [docs/master-setup.md](docs/master-setup.md), [docs/worker-setup.md](docs/worker-setup.md)
 - Storage: [docs/longhorn-setup.md](docs/longhorn-setup.md)
 - Networking: [docs/metallb-setup.md](docs/metallb-setup.md)
+- Management UI: [docs/portainer-setup.md](docs/portainer-setup.md)
 - Services: [docs/services/](docs/services/)
 
 When modifying cluster configuration, update the corresponding documentation in `docs/`.

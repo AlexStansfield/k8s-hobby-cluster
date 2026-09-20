@@ -111,8 +111,29 @@ dashboardProviders:
         options:
           path: /var/lib/grafana/dashboards/default
 
-# Dashboards (empty for now - can add later)
-dashboards: {}
+# Community dashboards provisioned from grafana.com
+dashboards:
+  default:
+    node-exporter-full:
+      gnetId: 1860
+      revision: 37
+      datasource: Prometheus
+    k8s-cluster-overview:
+      gnetId: 15282
+      revision: 1
+      datasource: Prometheus
+    kubernetes-views-namespaces:
+      gnetId: 15758
+      revision: 42
+      datasource: Prometheus
+    kubernetes-views-pods:
+      gnetId: 15760
+      revision: 36
+      datasource: Prometheus
+    longhorn:
+      gnetId: 16888
+      revision: 9
+      datasource: Prometheus
 
 # ServiceAccount
 serviceAccount:

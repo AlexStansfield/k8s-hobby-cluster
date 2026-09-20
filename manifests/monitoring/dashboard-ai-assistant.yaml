@@ -1,0 +1,619 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dashboard-ai-assistant
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  ai-assistant.json: |
+    {
+      "annotations": {
+        "list": []
+      },
+      "description": "Monitoring dashboard for ai-assistant microservices",
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 1,
+      "links": [],
+      "panels": [
+        {
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+          "id": 100,
+          "title": "Overview",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "thresholds": {
+                "steps": [
+                  { "color": "red", "value": null },
+                  { "color": "green", "value": 1 }
+                ]
+              },
+              "mappings": []
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
+          "id": 1,
+          "options": {
+            "colorMode": "background",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "textMode": "auto"
+          },
+          "title": "Running Pods",
+          "type": "stat",
+          "targets": [
+            {
+              "expr": "count(kube_pod_status_phase{namespace=\"$namespace\", phase=\"Running\"} == 1)",
+              "legendFormat": "Running"
+            }
+          ]
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "thresholds": {
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "yellow", "value": 1 },
+                  { "color": "red", "value": 5 }
+                ]
+              },
+              "mappings": []
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 4, "w": 4, "x": 4, "y": 1 },
+          "id": 2,
+          "options": {
+            "colorMode": "background",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "textMode": "auto"
+          },
+          "title": "Restarts (24h)",
+          "type": "stat",
+          "targets": [
+            {
+              "expr": "sum(increase(kube_pod_container_status_restarts_total{namespace=\"$namespace\"}[24h]))",
+              "legendFormat": "Restarts"
+            }
+          ]
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "unit": "cores",
+              "thresholds": {
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "yellow", "value": 4 },
+                  { "color": "red", "value": 8 }
+                ]
+              },
+              "mappings": []
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 4, "w": 4, "x": 8, "y": 1 },
+          "id": 3,
+          "options": {
+            "colorMode": "background",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "textMode": "auto"
+          },
+          "title": "Total CPU",
+          "type": "stat",
+          "targets": [
+            {
+              "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"$namespace\", container!=\"\", container!=\"POD\"}[5m]))",
+              "legendFormat": "CPU"
+            }
+          ]
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "unit": "bytes",
+              "thresholds": {
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "yellow", "value": 12000000000 },
+                  { "color": "red", "value": 16000000000 }
+                ]
+              },
+              "mappings": []
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 4, "w": 4, "x": 12, "y": 1 },
+          "id": 4,
+          "options": {
+            "colorMode": "background",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "textMode": "auto"
+          },
+          "title": "Total Memory",
+          "type": "stat",
+          "targets": [
+            {
+              "expr": "sum(container_memory_working_set_bytes{namespace=\"$namespace\", container!=\"\", container!=\"POD\"})",
+              "legendFormat": "Memory"
+            }
+          ]
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "unit": "Bps",
+              "thresholds": {
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "yellow", "value": 10000000 }
+                ]
+              },
+              "mappings": []
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 4, "w": 4, "x": 16, "y": 1 },
+          "id": 5,
+          "options": {
+            "colorMode": "background",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "textMode": "auto"
+          },
+          "title": "Network In",
+          "type": "stat",
+          "targets": [
+            {
+              "expr": "sum(rate(container_network_receive_bytes_total{namespace=\"$namespace\"}[5m]))",
+              "legendFormat": "Rx"
+            }
+          ]
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "unit": "Bps",
+              "thresholds": {
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "yellow", "value": 10000000 }
+                ]
+              },
+              "mappings": []
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 4, "w": 4, "x": 20, "y": 1 },
+          "id": 6,
+          "options": {
+            "colorMode": "background",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+            "textMode": "auto"
+          },
+          "title": "Network Out",
+          "type": "stat",
+          "targets": [
+            {
+              "expr": "sum(rate(container_network_transmit_bytes_total{namespace=\"$namespace\"}[5m]))",
+              "legendFormat": "Tx"
+            }
+          ]
+        },
+        {
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+          "id": 101,
+          "title": "CPU & Memory by Service",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": {
+                "fillOpacity": 20,
+                "lineWidth": 1,
+                "spanNulls": false,
+                "stacking": { "mode": "normal" }
+              },
+              "unit": "cores"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
+          "id": 10,
+          "options": {
+            "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "right", "sortBy": "Mean", "sortDesc": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "title": "CPU Usage by Service",
+          "type": "timeseries",
+          "targets": [
+            {
+              "expr": "sum by (container) (rate(container_cpu_usage_seconds_total{namespace=\"$namespace\", container!=\"\", container!=\"POD\", container=~\"$service\"}[5m]))",
+              "legendFormat": "{{container}}"
+            }
+          ]
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": {
+                "fillOpacity": 20,
+                "lineWidth": 1,
+                "spanNulls": false,
+                "stacking": { "mode": "normal" }
+              },
+              "unit": "bytes"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
+          "id": 11,
+          "options": {
+            "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "right", "sortBy": "Mean", "sortDesc": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "title": "Memory Usage by Service",
+          "type": "timeseries",
+          "targets": [
+            {
+              "expr": "sum by (container) (container_memory_working_set_bytes{namespace=\"$namespace\", container!=\"\", container!=\"POD\", container=~\"$service\"})",
+              "legendFormat": "{{container}}"
+            }
+          ]
+        },
+        {
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 14 },
+          "id": 102,
+          "title": "Network",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": {
+                "fillOpacity": 10,
+                "lineWidth": 1,
+                "spanNulls": false
+              },
+              "unit": "Bps"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 7, "w": 12, "x": 0, "y": 15 },
+          "id": 20,
+          "options": {
+            "legend": { "calcs": ["mean"], "displayMode": "table", "placement": "right", "sortBy": "Mean", "sortDesc": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "title": "Network Received",
+          "type": "timeseries",
+          "targets": [
+            {
+              "expr": "sum by (pod) (rate(container_network_receive_bytes_total{namespace=\"$namespace\", pod=~\".*$service_filter.*\"}[5m]))",
+              "legendFormat": "{{pod}}"
+            }
+          ]
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": {
+                "fillOpacity": 10,
+                "lineWidth": 1,
+                "spanNulls": false
+              },
+              "unit": "Bps"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 7, "w": 12, "x": 12, "y": 15 },
+          "id": 21,
+          "options": {
+            "legend": { "calcs": ["mean"], "displayMode": "table", "placement": "right", "sortBy": "Mean", "sortDesc": true },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "title": "Network Transmitted",
+          "type": "timeseries",
+          "targets": [
+            {
+              "expr": "sum by (pod) (rate(container_network_transmit_bytes_total{namespace=\"$namespace\", pod=~\".*$service_filter.*\"}[5m]))",
+              "legendFormat": "{{pod}}"
+            }
+          ]
+        },
+        {
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 22 },
+          "id": 103,
+          "title": "Pod Health",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": {
+                "fillOpacity": 0,
+                "lineWidth": 2,
+                "spanNulls": false,
+                "drawStyle": "bars",
+                "barAlignment": 0
+              },
+              "unit": "short"
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 7, "w": 12, "x": 0, "y": 23 },
+          "id": 30,
+          "options": {
+            "legend": { "calcs": [], "displayMode": "list", "placement": "bottom" },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "title": "Pod Restarts",
+          "type": "timeseries",
+          "targets": [
+            {
+              "expr": "increase(kube_pod_container_status_restarts_total{namespace=\"$namespace\"}[$__rate_interval]) > 0",
+              "legendFormat": "{{pod}}"
+            }
+          ]
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "thresholds": {
+                "steps": [
+                  { "color": "green", "value": null }
+                ]
+              },
+              "custom": {
+                "align": "auto",
+                "displayMode": "auto"
+              },
+              "mappings": [
+                { "options": { "1": { "text": "Running", "color": "green" } }, "type": "value" },
+                { "options": { "0": { "text": "Not Running", "color": "red" } }, "type": "value" }
+              ]
+            },
+            "overrides": [
+              {
+                "matcher": { "id": "byName", "options": "CPU (cores)" },
+                "properties": [{ "id": "unit", "value": "cores" }, { "id": "decimals", "value": 3 }]
+              },
+              {
+                "matcher": { "id": "byName", "options": "Memory" },
+                "properties": [{ "id": "unit", "value": "bytes" }]
+              },
+              {
+                "matcher": { "id": "byName", "options": "Restarts" },
+                "properties": [{ "id": "thresholds", "value": { "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 1 }, { "color": "red", "value": 5 }] } }, { "id": "custom.displayMode", "value": "color-background" }]
+              }
+            ]
+          },
+          "gridPos": { "h": 7, "w": 12, "x": 12, "y": 23 },
+          "id": 31,
+          "options": {
+            "showHeader": true,
+            "sortBy": [{ "desc": true, "displayName": "Memory" }]
+          },
+          "title": "Pod Status",
+          "type": "table",
+          "targets": [
+            {
+              "expr": "sum by (pod) (kube_pod_status_phase{namespace=\"$namespace\", phase=\"Running\"} == 1)",
+              "legendFormat": "{{pod}}",
+              "format": "table",
+              "instant": true,
+              "refId": "A"
+            },
+            {
+              "expr": "sum by (pod) (rate(container_cpu_usage_seconds_total{namespace=\"$namespace\", container!=\"\", container!=\"POD\"}[5m]))",
+              "legendFormat": "{{pod}}",
+              "format": "table",
+              "instant": true,
+              "refId": "B"
+            },
+            {
+              "expr": "sum by (pod) (container_memory_working_set_bytes{namespace=\"$namespace\", container!=\"\", container!=\"POD\"})",
+              "legendFormat": "{{pod}}",
+              "format": "table",
+              "instant": true,
+              "refId": "C"
+            },
+            {
+              "expr": "sum by (pod) (kube_pod_container_status_restarts_total{namespace=\"$namespace\"})",
+              "legendFormat": "{{pod}}",
+              "format": "table",
+              "instant": true,
+              "refId": "D"
+            }
+          ],
+          "transformations": [
+            { "id": "merge", "options": {} },
+            { "id": "organize", "options": {
+              "excludeByName": { "Time": true, "Time 1": true, "Time 2": true, "Time 3": true, "Time 4": true },
+              "renameByName": { "pod": "Pod", "Value #A": "Status", "Value #B": "CPU (cores)", "Value #C": "Memory", "Value #D": "Restarts" }
+            }},
+            { "id": "sortBy", "options": { "fields": {}, "sort": [{ "field": "Memory", "desc": true }] } }
+          ]
+        },
+        {
+          "collapsed": false,
+          "gridPos": { "h": 1, "w": 24, "x": 0, "y": 30 },
+          "id": 104,
+          "title": "Logs",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "loki", "uid": "" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": {
+                "fillOpacity": 30,
+                "lineWidth": 1,
+                "drawStyle": "bars"
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": { "h": 6, "w": 24, "x": 0, "y": 31 },
+          "id": 40,
+          "options": {
+            "legend": { "calcs": [], "displayMode": "list", "placement": "right" },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "title": "Log Volume by Level",
+          "type": "timeseries",
+          "targets": [
+            {
+              "expr": "sum by (level) (rate({namespace=\"$namespace\"} | json | __error__=\"\" | level!=\"\" [$__auto]))",
+              "legendFormat": "{{level}}"
+            }
+          ]
+        },
+        {
+          "datasource": { "type": "loki", "uid": "" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "palette-classic" },
+              "custom": {
+                "fillOpacity": 50,
+                "lineWidth": 1,
+                "drawStyle": "bars"
+              }
+            },
+            "overrides": [
+              {
+                "matcher": { "id": "byName", "options": "errors" },
+                "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }]
+              }
+            ]
+          },
+          "gridPos": { "h": 6, "w": 24, "x": 0, "y": 37 },
+          "id": 41,
+          "options": {
+            "legend": { "calcs": ["sum"], "displayMode": "table", "placement": "right" },
+            "tooltip": { "mode": "multi", "sort": "desc" }
+          },
+          "title": "Error Rate by Service",
+          "type": "timeseries",
+          "targets": [
+            {
+              "expr": "sum by (app) (rate({namespace=\"$namespace\"} |~ \"(?i)error|exception|traceback\" [$__auto]))",
+              "legendFormat": "{{app}}"
+            }
+          ]
+        },
+        {
+          "datasource": { "type": "loki", "uid": "" },
+          "gridPos": { "h": 10, "w": 24, "x": 0, "y": 43 },
+          "id": 42,
+          "options": {
+            "showTime": true,
+            "showLabels": true,
+            "showCommonLabels": false,
+            "wrapLogMessage": true,
+            "prettifyLogMessage": false,
+            "enableLogDetails": true,
+            "sortOrder": "Descending",
+            "dedupStrategy": "none"
+          },
+          "title": "Recent Error Logs",
+          "type": "logs",
+          "targets": [
+            {
+              "expr": "{namespace=\"$namespace\"} |~ \"(?i)error|exception|traceback|fatal\"",
+              "legendFormat": ""
+            }
+          ]
+        }
+      ],
+      "schemaVersion": 39,
+      "tags": ["ai-assistant", "kubernetes"],
+      "templating": {
+        "list": [
+          {
+            "current": { "selected": false, "text": "ai-assistant", "value": "ai-assistant" },
+            "hide": 0,
+            "label": "Namespace",
+            "name": "namespace",
+            "options": [],
+            "query": "label_values(kube_pod_info, namespace)",
+            "refresh": 2,
+            "type": "query"
+          },
+          {
+            "allValue": ".*",
+            "current": { "selected": true, "text": "All", "value": "$__all" },
+            "hide": 0,
+            "includeAll": true,
+            "label": "Service",
+            "multi": true,
+            "name": "service",
+            "options": [],
+            "query": "label_values(container_memory_working_set_bytes{namespace=\"$namespace\", container!=\"\", container!=\"POD\"}, container)",
+            "refresh": 2,
+            "sort": 1,
+            "type": "query"
+          },
+          {
+            "current": { "selected": false, "text": "", "value": "" },
+            "hide": 2,
+            "label": "",
+            "name": "service_filter",
+            "query": "${service:pipe}",
+            "type": "textbox"
+          }
+        ]
+      },
+      "time": { "from": "now-6h", "to": "now" },
+      "timepicker": {},
+      "timezone": "",
+      "title": "AI Assistant Services",
+      "uid": "ai-assistant-services",
+      "version": 1
+    }

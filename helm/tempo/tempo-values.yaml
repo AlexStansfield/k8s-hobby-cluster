@@ -6,6 +6,10 @@
 tempo:
   replicas: 1
 
+  # Usage reporting to stats.grafana.org is blocked by Pi-hole and Tempo
+  # retries it every few seconds, so turn it off at source.
+  reportingEnabled: false
+
   # Resource limits (30% reduced from requirements)
   resources:
     requests:

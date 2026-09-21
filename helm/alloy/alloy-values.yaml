@@ -6,6 +6,11 @@
 controller:
   type: daemonset
 
+# No usage reporting to stats.grafana.org (blocked by Pi-hole anyway)
+alloy:
+  extraArgs:
+    - --disable-reporting
+
 # Resource limits per pod (30% reduced from requirements)
 resources:
   requests:

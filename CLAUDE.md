@@ -148,7 +148,9 @@ Then restart:
     ├── longhorn-setup.md  # Longhorn storage setup
     ├── metallb-setup.md   # MetalLB load balancer setup
     └── services/
-        └── registry.md    # Private registry setup
+        ├── registry.md            # Private registry setup
+        ├── observability-setup.md # Observability stack deployment
+        └── grafana-guide.md       # Grafana usage, dashboards, alerting, traces
 ```
 
 ## Architecture Patterns

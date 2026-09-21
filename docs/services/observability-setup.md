@@ -570,13 +570,28 @@ kubectl delete namespace monitoring
 
 ---
 
+## Using Grafana
+
+For detailed guidance on using Grafana's features including:
+- Viewing and searching traces
+- Trace-to-log correlation workflows
+- Service map visualization
+- Dashboard management and imports
+- Alert rule creation
+- Useful PromQL, LogQL, and TraceQL queries
+
+See the **[Grafana Usage Guide](grafana-guide.md)**.
+
+---
+
 ## Next Steps
 
 1. **Change Grafana Password**: Login and change from `changeme123`
-2. **Create Dashboards**: Build custom dashboards for your applications
-3. **Configure Alerts**: Set up Prometheus alerting rules
-4. **Instrument Applications**: Add metrics and trace instrumentation to your services
-5. **Backup Dashboards**: Export dashboards as JSON and commit to git
+2. **Explore Dashboards**: See the [Grafana Usage Guide](grafana-guide.md#5-dashboards) for pre-provisioned dashboards and how to import more
+3. **Set Up Alerts**: See the [Grafana Usage Guide - Alerting](grafana-guide.md#6-alerting) for example alert rules
+4. **View Traces**: See the [Grafana Usage Guide - Traces](grafana-guide.md#2-viewing-traces-with-tempo) for trace viewing workflows
+5. **Instrument Applications**: Add metrics and trace instrumentation to your services (see Application Instrumentation section above)
+6. **Backup Dashboards**: Export dashboards as JSON and commit to git (see [Grafana Usage Guide - Dashboards](grafana-guide.md#5-dashboards))
 
 ---
 

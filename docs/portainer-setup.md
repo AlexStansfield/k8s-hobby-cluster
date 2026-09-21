@@ -1,25 +1,24 @@
 # Portainer Agent Setup
 
 This document describes how to connect the cluster to **Portainer** as a Kubernetes environment.
-The Portainer server itself runs on `dixie` (https://portainer.jinkies.net); the cluster only runs the **Portainer Agent**, which the server connects to over the LAN on port 9001.
+The Portainer server itself runs on `dixie` (https://portainer.jinkies.net); the cluster only runs the **Portainer Agent**, which the server connects to over the LAN on NodePort `30778`.
 
 ## 1. Prerequisites
 
 - A running **k3s cluster** (master + workers ready).
 - **kubectl** configured on the master node.
-- **MetalLB** installed ([metallb-setup.md](metallb-setup.md)) so the agent can get a LAN IP.
 - A Portainer server somewhere on the same LAN.
 
 ## 2. Deploy the agent
 
-The manifest lives in [manifests/portainer/portainer-agent.yaml](../manifests/portainer/portainer-agent.yaml). It is Portainer's generated `portainer-agent-k8s-lb.yaml` with the image pinned, and creates:
+The manifest lives in [manifests/portainer/portainer-agent.yaml](../manifests/portainer/portainer-agent.yaml). It is Portainer's generated `portainer-agent-k8s-nodeport.yaml` with the image pinned, and creates:
 
 | Resource | Purpose |
 |---|---|
 | Namespace `portainer` | Holds everything below |
 | ServiceAccount `portainer-sa-clusteradmin` + ClusterRoleBinding to `cluster-admin` | The agent manages the whole cluster on Portainer's behalf |
 | Service `portainer-agent-headless` | Peer discovery for the agent's cluster mode |
-| Service `portainer-agent` (LoadBalancer, port 9001) | LAN endpoint the Portainer server connects to |
+| Service `portainer-agent` (NodePort `30778` → 9001) | LAN endpoint the Portainer server connects to |
 | Deployment `portainer-agent` | One replica of `portainer/agent` |
 
 Apply it:
@@ -34,14 +33,14 @@ Verify:
 kubectl -n portainer get pods,svc
 ```
 
-The pod should be `Running` and the `portainer-agent` Service should show an `EXTERNAL-IP`.
+The pod should be `Running` and the `portainer-agent` Service should show `9001:30778/TCP`.
 
 ## 3. Register the environment in Portainer
 
 In the Portainer UI: **Environments → Add environment → Kubernetes → Agent**.
 
 - **Name**: `cluster`
-- **Environment address**: `<EXTERNAL-IP>:9001` from the step above
+- **Environment address**: `192.168.2.31:30778` (any node IP works; the master is the natural choice since it is the control plane anyway)
 
 Portainer should show the environment as *up* within a few seconds.
 
@@ -56,21 +55,17 @@ Keep the agent on the same minor version as the Portainer server (**Home → Abo
 
 Current versions: server **2.45.1**, agent **2.45.0**.
 
-## 5. Note on the LoadBalancer IP
+## 5. Why NodePort and not MetalLB
 
-The live `portainer-agent` Service was first applied on 2025-09-08, **before** k3s's built-in ServiceLB was disabled for MetalLB. Its status still carries the node IPs (`192.168.2.31–33`) that ServiceLB assigned. MetalLB does not touch a Service that already has an external IP, and kube-proxy keeps routing those IPs, so the Portainer environment is registered as `192.168.2.31:9001` and works — but only by accident of history.
+The other LAN-facing services in this cluster get a MetalLB address. The agent deliberately does not:
 
-If the Service is ever deleted and recreated (including on a cluster rebuild), MetalLB will assign an IP from its pool (`192.168.2.41–60`) instead, and the Portainer environment address will need updating to match.
+- **It is the management plane.** If MetalLB is broken you still want to reach the cluster through Portainer to fix it, so the agent should not depend on it.
+- **Failover buys nothing here.** MetalLB's L2 mode would move a floating IP to a surviving node, but with a single control-plane node, if `cluster-master` is down Portainer cannot manage the cluster regardless of how it reaches the agent.
+- **It is deterministic.** No IP allocation happens on apply, so a rebuild comes up on exactly the same address and the Portainer environment entry keeps working.
 
-To make this deterministic, pin an address from the MetalLB pool in the manifest, as the other LoadBalancer services in this repo do:
+This is also how the private registry is exposed (`cluster-master:31234`).
 
-```yaml
-spec:
-  type: LoadBalancer
-  loadBalancerIP: 192.168.2.48   # pick a free one from the pool
-```
-
-then delete and re-apply the Service (`kubectl -n portainer delete svc portainer-agent`, then `kubectl apply -f …`) so MetalLB takes ownership, and update the environment address in Portainer.
+Historical note: until September 2026 the Service was `type: LoadBalancer` and was reached on `192.168.2.31:9001`. That only worked because it had been created before k3s ServiceLB was disabled and still carried the node IPs ServiceLB had assigned; MetalLB never took it over. It was switched to NodePort to make the setup intentional.
 
 ## 6. Troubleshooting
 
@@ -87,7 +82,7 @@ The agent logs at `DEBUG` level by default (set via `LOG_LEVEL` in the manifest)
 
 ```bash
 kubectl -n portainer get svc portainer-agent
-curl -k https://<EXTERNAL-IP>:9001/ping
+curl -k https://192.168.2.31:30778/ping
 ```
 
-The IP shown must match the environment address configured in Portainer (see section 5).
+The node IP and port must match the environment address configured in Portainer.

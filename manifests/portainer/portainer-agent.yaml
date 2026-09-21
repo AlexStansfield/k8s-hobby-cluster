@@ -45,21 +45,20 @@ spec:
   selector:
     app: portainer-agent
 ---
-# LAN-facing endpoint the Portainer server connects to on port 9001.
+# LAN-facing endpoint the Portainer server connects to.
 #
-# No loadBalancerIP is pinned here, to match what is live. The live Service
-# still carries node IPs (192.168.2.31-33) in its status from when it was
-# first applied under k3s ServiceLB; MetalLB leaves it alone and kube-proxy
-# keeps routing it. On a fresh apply MetalLB will hand out a pool IP instead
-# (see docs/portainer-setup.md), so check `kubectl -n portainer get svc` and
-# point the Portainer environment URL at whatever it gets.
+# NodePort rather than a MetalLB LoadBalancer on purpose: this is the
+# management plane, so it should not depend on MetalLB being healthy, and
+# with a single control-plane node there is nothing for a floating IP to
+# fail over to anyway. Reach it on any node IP, e.g. 192.168.2.31:30778
+# (30778 is the port Portainer's own NodePort manifest uses).
 apiVersion: v1
 kind: Service
 metadata:
   name: portainer-agent
   namespace: portainer
 spec:
-  type: LoadBalancer
+  type: NodePort
   selector:
     app: portainer-agent
   ports:
@@ -67,6 +66,7 @@ spec:
       protocol: TCP
       port: 9001
       targetPort: 9001
+      nodePort: 30778
 ---
 apiVersion: apps/v1
 kind: Deployment

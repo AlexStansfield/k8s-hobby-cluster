@@ -72,7 +72,7 @@ When adding services that need external access, use MetalLB LoadBalancer IPs fro
 
 ### Management UI: Portainer
 - Portainer server runs elsewhere on the LAN (https://portainer.jinkies.net); the cluster only runs the **Portainer Agent**
-- Agent deployed via [manifests/portainer/portainer-agent.yaml](manifests/portainer/portainer-agent.yaml), reachable on port 9001
+- Agent deployed via [manifests/portainer/portainer-agent.yaml](manifests/portainer/portainer-agent.yaml), exposed as NodePort `30778` (deliberately not MetalLB — see [docs/portainer-setup.md](docs/portainer-setup.md))
 - Keep the agent image version in step with the Portainer server version
 
 ## Common Commands

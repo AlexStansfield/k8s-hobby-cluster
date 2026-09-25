@@ -75,6 +75,10 @@ When adding services that need external access, use MetalLB LoadBalancer IPs fro
 - Agent deployed via [manifests/portainer/portainer-agent.yaml](manifests/portainer/portainer-agent.yaml), exposed as NodePort `30778` (deliberately not MetalLB — see [docs/portainer-setup.md](docs/portainer-setup.md))
 - Keep the agent image version in step with the Portainer server version
 
+### Home Assistant Integration
+- Home Assistant on dixie monitors and controls the cluster via the tibuntu/homeassistant-kubernetes HACS integration, authenticating as ServiceAccount `homeassistant:homeassistant-kubernetes-integration`
+- RBAC vendored from upstream v1.12.0 "full" mode in [manifests/homeassistant/](manifests/homeassistant/) (can scale/restart workloads, cordon nodes, delete pods and jobs; no Secrets). Revoke with `kubectl delete clusterrolebinding homeassistant-kubernetes-integration`. See [docs/homeassistant-setup.md](docs/homeassistant-setup.md)
+
 ## Common Commands
 
 ### Cluster Management
@@ -145,6 +149,7 @@ Then restart:
 ├── manifests/         # Kubernetes YAML manifests for infrastructure
 │   ├── longhorn/      # Longhorn UI LoadBalancer config
 │   ├── metallb/       # MetalLB IP pool and L2Advertisement
+│   ├── homeassistant/ # RBAC for the Home Assistant Kubernetes integration
 │   └── portainer/     # Portainer agent (connects cluster to Portainer server)
 ├── helm/              # Helm values files for chart deployments
 │   └── registry/      # Private registry Helm values
@@ -154,6 +159,7 @@ Then restart:
     ├── longhorn-setup.md  # Longhorn storage setup
     ├── metallb-setup.md   # MetalLB load balancer setup
     ├── portainer-setup.md # Portainer agent deployment
+    ├── homeassistant-setup.md # Home Assistant integration RBAC and token
     └── services/
         ├── registry.md            # Private registry setup
         ├── observability-setup.md # Observability stack deployment
@@ -417,6 +423,7 @@ All setup procedures are documented in `docs/`:
 - Storage: [docs/longhorn-setup.md](docs/longhorn-setup.md)
 - Networking: [docs/metallb-setup.md](docs/metallb-setup.md)
 - Management UI: [docs/portainer-setup.md](docs/portainer-setup.md)
+- Home Assistant: [docs/homeassistant-setup.md](docs/homeassistant-setup.md)
 - Services: [docs/services/](docs/services/)
 
 When modifying cluster configuration, update the corresponding documentation in `docs/`.

@@ -106,3 +106,21 @@ Verify:
 ```bash
 kubectl get storageclass
 ```
+
+## 8. Snapshot Policy
+
+A recurring job `c-89s9j4` (created in the Longhorn UI, not in this repo) takes a **snapshot of every volume in the `default` group daily at 00:00 and keeps 7**. Volumes with no recurring-job labels fall into `default` automatically. These are **local snapshots only**: no backup target is configured, so they protect against accidental deletion or corruption, but not against losing the data on all replicas.
+
+**Telemetry volumes are excluded.** Prometheus, Loki and Tempo rewrite their data constantly (compaction, retention), so each daily snapshot pinned several GiB of already-deleted blocks. By 2026-10-08 the 50 GiB `prometheus-server` volume held 83 GiB per replica for 11 GiB of real data. These three volumes are moved to a group with no jobs:
+
+```bash
+for V in <prometheus-server pv> <storage-loki-0 pv> <storage-tempo-0 pv>; do
+  kubectl label volumes.longhorn.io -n longhorn-system $V \
+    recurring-job-group.longhorn.io/default- \
+    recurring-job-group.longhorn.io/no-snapshots=enabled --overwrite
+done
+```
+
+They also have `unmapMarkSnapChainRemoved: enabled` (the volume's *Remove Snapshots During Filesystem Trim*), so a filesystem trim releases the last removed snapshot as well. Reclaiming the space was: delete the volume's snapshots (`kubectl delete snapshots.longhorn.io -l longhornvolume=<pv>`), wait for the purge to finish (`engines.longhorn.io` `status.purgeStatus`), then run **Trim Filesystem** on the volume. Result: prometheus-server 83.4 → 12.6 GiB, loki 15.8 → 2.0 GiB, tempo 1.6 → 0.3 GiB, about 225 GiB freed across the three nodes.
+
+> These labels live on the Longhorn `Volume` objects, not in a manifest. If one of these PVCs is ever recreated, the new volume lands back in `default` and needs relabelling. The durable fix is to set the labels on the PVCs through each chart's persistence settings with `recurring-job.longhorn.io/source: enabled`. That needs the Prometheus Helm values in this repo reconciled with the deployed release first (they have drifted).

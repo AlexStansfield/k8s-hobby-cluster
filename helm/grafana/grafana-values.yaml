@@ -39,8 +39,19 @@ service:
   loadBalancerIP: 192.168.2.44
   annotations: {}
 
+# The grafana PVC is ReadWriteOnce, so a rolling update deadlocks on a
+# Multi-Attach error (new pod on another node cannot mount the volume the
+# old pod still holds). Recreate stops the old pod first.
+deploymentStrategy:
+  type: Recreate
+
 # Grafana configuration from ConfigMap
 grafana.ini:
+  # Grafana phones home to stats.grafana.org every few seconds and Pi-hole
+  # blocks it, so it just retries forever. Turn the reporting off at source.
+  analytics:
+    reporting_enabled: false
+    check_for_updates: false
   server:
     http_port: 3000
     domain: 192.168.2.44

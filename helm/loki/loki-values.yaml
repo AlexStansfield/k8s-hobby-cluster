@@ -10,6 +10,10 @@ loki:
   # Auth disabled for internal use
   auth_enabled: false
 
+  # No usage reporting to stats.grafana.org (blocked by Pi-hole anyway)
+  analytics:
+    reporting_enabled: false
+
   # Common configuration (using /var/loki as mount point)
   commonConfig:
     path_prefix: /var/loki

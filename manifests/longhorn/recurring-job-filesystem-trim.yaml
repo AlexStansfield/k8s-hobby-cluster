@@ -1,0 +1,22 @@
+# Weekly filesystem trim for the telemetry volumes (group `no-snapshots`:
+# prometheus-server, storage-loki-0, storage-tempo-0). Longhorn still takes
+# system snapshots of these volumes (replica rebuilds, reschedules), and a
+# removed snapshot sitting directly under the volume head can't be merged
+# away, so every block the app rewrites afterwards is kept twice. On
+# 2026-10-17 one such snapshot grew prometheus-server to 57.7 GiB actual on a
+# 50 GiB volume. These volumes have unmapMarkSnapChainRemoved enabled, so a
+# trim releases that snapshot's space; doing it weekly caps the waste at
+# about a week of churn. See docs/longhorn-setup.md, section 8.
+apiVersion: longhorn.io/v1beta2
+kind: RecurringJob
+metadata:
+  name: weekly-filesystem-trim
+  namespace: longhorn-system
+spec:
+  task: filesystem-trim
+  cron: "0 19 * * 6" # Sunday 02:00 Asia/Bangkok
+  groups:
+    - no-snapshots
+  retain: 0
+  concurrency: 1
+  labels: {}

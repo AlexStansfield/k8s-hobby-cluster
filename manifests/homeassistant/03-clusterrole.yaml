@@ -1,4 +1,7 @@
-# Vendored from tibuntu/homeassistant-kubernetes v1.12.0 manifests/full/clusterrole.yaml
+# Vendored from tibuntu/homeassistant-kubernetes v1.12.0 manifests/full/clusterrole.yaml,
+# plus the two read-only rules added upstream by v1.17.0 (HTTPRoutes, HPAs).
+# Not taken from v1.17.0: pods/log (opt-in log snapshots; logs can hold secrets)
+# and pods/eviction (drain_node service). Add those only if wanted.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -69,3 +72,15 @@ rules:
   - apiGroups: ["extensions"]
     resources: ["deployments/scale"]
     verbs: ["get", "patch", "update"]
+
+  # Gateway API: HTTPRoutes in the Network tab (monitoring only; harmless
+  # when the CRDs are not installed). Added for integration v1.17.0.
+  - apiGroups: ["gateway.networking.k8s.io"]
+    resources: ["httproutes"]
+    verbs: ["get", "list", "watch"]
+
+  # Autoscaling: detect HPA-managed workloads (scale guard + HPA badge).
+  # Added for integration v1.17.0.
+  - apiGroups: ["autoscaling"]
+    resources: ["horizontalpodautoscalers"]
+    verbs: ["get", "list", "watch"]
